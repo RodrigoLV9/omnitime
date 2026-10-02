@@ -1,0 +1,46 @@
+---
+interface Props {
+  title: string;
+}
+
+const { title } = Astro.props;
+---
+<!DOCTYPE html>
+<html lang="es" data-theme="light">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{title}</title>
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  </head>
+  <body>
+    <header style="border-bottom: 1px solid var(--color-border); padding: 1rem 2rem; background: var(--color-bg);">
+      <h1 style="font-size: 1.25rem; font-weight: 600; color: var(--color-text);">
+        <a href="/" style="color: inherit;">Omnitime</a>
+      </h1>
+    </header>
+
+    <main style="min-height: calc(100vh - 120px); padding: 2rem;">
+      <slot />
+    </main>
+
+    <footer style="border-top: 1px solid var(--color-border); padding: 1.5rem 2rem; background: var(--color-bg); text-align: center;">
+      <p style="font-size: 0.875rem; color: var(--color-text-muted);">
+        © 2026 Omnitime. Todos los derechos reservados.
+      </p>
+    </footer>
+
+    <script>
+      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      const storedTheme = localStorage.getItem('theme');
+      const theme = storedTheme || (prefersDark ? 'dark' : 'light');
+      document.documentElement.setAttribute('data-theme', theme);
+    </script>
+  </body>
+</html>
+<style>
+  @import '../styles/theme.css';
+  @import '../styles/global.css';
+</style>
