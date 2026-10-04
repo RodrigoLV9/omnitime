@@ -1,12 +1,17 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
+import YearProgress from '../components/YearProgress.astro';
+import TimeStats from '../components/TimeStats.astro';
 ---
 <BaseLayout title="Inicio - Omnitime">
   <h1 style="font-size: 2.5rem; font-weight: 700; color: var(--color-text); margin-bottom: 1rem;">
     Omnitime
   </h1>
-  <p style="font-size: 1.125rem; color: var(--color-text-muted); max-width: 600px;">
+  <p style="font-size: 1.125rem; color: var(--color-text-muted); max-width: 600px; margin-bottom: 2rem;">
     Bienvenido a Omnitime, tu referencia para la medición del tiempo en sus múltiples dimensiones.
     Explora los calendarios científico, astronómico y cultural desde una sola plataforma.
   </p>
+
+  <YearProgress client:load />
+  <TimeStats client:load />
 </BaseLayout>
