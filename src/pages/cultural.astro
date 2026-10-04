@@ -1,12 +1,15 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
+import MoonPhase from '../components/MoonPhase.astro';
 ---
 <BaseLayout title="Calendario Cultural - Omnitime">
   <h1 style="font-size: 2.5rem; font-weight: 700; color: var(--color-text); margin-bottom: 1rem;">
     Calendario Cultural
   </h1>
-  <p style="font-size: 1.125rem; color: var(--color-text-muted); max-width: 600px;">
+  <p style="font-size: 1.125rem; color: var(--color-text-muted); max-width: 600px; margin-bottom: 2rem;">
     Recopilación de sistemas calendáricos históricos y tradicionales: gregoriano, juliano,
     hebreo, islámico, chino, maya, y más. La diversidad temporal de la humanidad.
   </p>
+
+  <MoonPhase client:load />
 </BaseLayout>

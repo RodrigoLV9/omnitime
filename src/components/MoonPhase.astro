@@ -1,0 +1,198 @@
+---
+---
+<div class="moon-phase" style="
+  font-family: inherit;
+  max-width: 600px;
+  margin: 0 auto;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  padding: 2rem;
+">
+  <div style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--color-text-muted); margin-bottom: 1.5rem; text-align: center;">
+    Fase lunar actual
+  </div>
+
+  <div class="moon-visual" style="
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+  ">
+    <div class="moon-svg" style="position: relative; width: 160px; height: 160px;">
+      <svg width="160" height="160" viewBox="0 0 160 160" style="transform: rotate(-90deg);">
+        <circle cx="80" cy="80" r="70" fill="none" stroke="var(--color-border)" stroke-width="4"/>
+        <circle id="moon-illumination" cx="80" cy="80" r="70" fill="none" stroke="var(--color-primary)" stroke-width="4"
+          stroke-dasharray="439.82" stroke-dashoffset="439.82" stroke-linecap="round"
+          style="transition: stroke-dashoffset 1s ease-out;"/>
+      </svg>
+      <div id="moon-phase-icon" style="
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 120px;
+        height: 120px;
+        border-radius: 50%;
+        background: radial-gradient(circle at 30% 30%, var(--color-primary) 0%, var(--color-primary-hover) 100%);
+        box-shadow:
+          inset -8px -8px 20px rgba(0,0,0,0.3),
+          0 0 30px color-mix(in srgb, var(--color-primary) 40%, transparent);
+        opacity: 0.9;
+      "></div>
+    </div>
+
+    <div id="illumination-percent" style="
+      font-size: 3rem;
+      font-weight: 700;
+      color: var(--color-primary);
+      font-variant-numeric: tabular-nums;
+      font-family: ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace;
+    ">—%</div>
+
+    <div id="phase-name" style="
+      font-size: 1.25rem;
+      font-weight: 600;
+      color: var(--color-text);
+      text-transform: capitalize;
+    ">—</div>
+  </div>
+
+  <div class="moon-details" style="
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--color-border);
+  ">
+    <div style="text-align: center;">
+      <div style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--color-text-muted); margin-bottom: 0.25rem;">
+        Próxima Luna Llena
+      </div>
+      <div id="next-full-moon" style="
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: var(--color-text);
+        font-variant-numeric: tabular-nums;
+        font-family: ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace;
+      ">—</div>
+      <div id="days-to-full" style="font-size: 0.875rem; color: var(--color-text-muted); margin-top: 0.25rem;">—</div>
+    </div>
+
+    <div style="text-align: center;">
+      <div style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--color-text-muted); margin-bottom: 0.25rem;">
+        Próxima Luna Nueva
+      </div>
+      <div id="next-new-moon" style="
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: var(--color-text);
+        font-variant-numeric: tabular-nums;
+        font-family: ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace;
+      ">—</div>
+      <div id="days-to-new" style="font-size: 0.875rem; color: var(--color-text-muted); margin-top: 0.25rem;">—</div>
+    </div>
+  </div>
+
+  <div id="phase-description" style="
+    margin-top: 1.5rem;
+    padding: 1rem;
+    background: var(--color-background);
+    border-radius: 8px;
+    text-align: center;
+    font-size: 0.875rem;
+    color: var(--color-text-muted);
+    line-height: 1.5;
+  "></div>
+</div>
+
+<script>
+  const LUNAR_CYCLE = 29.5305877;
+  const KNOWN_NEW_MOON = new Date('2000-01-06T18:14:00Z').getTime();
+
+  function getMoonPhase(date = new Date()) {
+    const diffMs = date.getTime() - KNOWN_NEW_MOON;
+    const diffDays = diffMs / (1000 * 60 * 60 * 24);
+    const cyclePosition = (diffDays % LUNAR_CYCLE + LUNAR_CYCLE) % LUNAR_CYCLE;
+    const illumination = (1 - Math.cos(2 * Math.PI * cyclePosition / LUNAR_CYCLE)) / 2;
+    return {
+      illumination: Math.round(illumination * 10000) / 100,
+      cyclePosition,
+      phaseIndex: Math.floor(cyclePosition / LUNAR_CYCLE * 8)
+    };
+  }
+
+  function getPhaseName(illumination, cyclePosition) {
+    const isWaxing = cyclePosition < LUNAR_CYCLE / 2;
+    if (illumination < 2.5) return 'luna nueva';
+    if (illumination < 22.5) return isWaxing ? 'luna creciente' : 'luna menguante';
+    if (illumination < 47.5) return isWaxing ? 'cuarto creciente' : 'cuarto menguante';
+    if (illumination < 52.5) return 'luna llena';
+    if (illumination < 72.5) return isWaxing ? 'gibosa creciente' : 'gibosa menguante';
+    if (illumination < 97.5) return isWaxing ? 'llena' : 'menguante';
+    return 'luna nueva';
+  }
+
+  function getNextPhaseDate(targetIllumination) {
+    const now = new Date();
+    const { cyclePosition } = getMoonPhase(now);
+    const targetPosition = targetIllumination === 100 ? LUNAR_CYCLE / 2 : 0;
+    let daysUntil = (targetPosition - cyclePosition + LUNAR_CYCLE) % LUNAR_CYCLE;
+    if (daysUntil <= 0.001) daysUntil = LUNAR_CYCLE;
+    return new Date(now.getTime() + daysUntil * 24 * 60 * 60 * 1000);
+  }
+
+  function formatDate(date) {
+    return date.toLocaleDateString(undefined, {
+      weekday: 'long',
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    });
+  }
+
+  function getPhaseDescription(illumination, phaseName) {
+    const descriptions = {
+      'luna nueva': 'La Luna no es visible desde la Tierra. Momento ideal para observar estrellas y cielo profundo.',
+      'luna creciente': 'Se empieza a ver un delgado creciente. La parte iluminada aumenta cada noche.',
+      'cuarto creciente': 'La mitad derecha de la Luna está iluminada. Sale al mediodía y se pone a medianoche.',
+      'gibosa creciente': 'Más de la mitad iluminada. Se acerca la Luna llena.',
+      'luna llena': 'La Luna está completamente iluminada. Sale al atardecer y se pone al amanecer.',
+      'gibosa menguante': 'Empieza a disminuir la iluminación. Más de la mitad aún visible.',
+      'cuarto menguante': 'La mitad izquierda iluminada. Sale a medianoche y se pone al mediodía.',
+      'luna menguante': 'Solo un delgado creciente visible antes de la nueva Luna.'
+    };
+    return descriptions[phaseName] || '';
+  }
+
+  function updateMoonPhase() {
+    const now = new Date();
+    const { illumination, cyclePosition } = getMoonPhase(now);
+    const phaseName = getPhaseName(illumination, cyclePosition);
+    const nextFullMoon = getNextPhaseDate(100);
+    const nextNewMoon = getNextPhaseDate(0);
+
+    const daysToFull = Math.ceil((nextFullMoon.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+    const daysToNew = Math.ceil((nextNewMoon.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+
+    const circumference = 2 * Math.PI * 70;
+    const offset = circumference - (illumination / 100) * circumference;
+
+    document.getElementById('illumination-percent').textContent = `${illumination.toFixed(2)}%`;
+    document.getElementById('phase-name').textContent = phaseName;
+    document.getElementById('moon-illumination').style.strokeDashoffset = offset;
+    document.getElementById('next-full-moon').textContent = formatDate(nextFullMoon);
+    document.getElementById('days-to-full').textContent = `en ${daysToFull} día${daysToFull !== 1 ? 's' : ''}`;
+    document.getElementById('next-new-moon').textContent = formatDate(nextNewMoon);
+    document.getElementById('days-to-new').textContent = `en ${daysToNew} día${daysToNew !== 1 ? 's' : ''}`;
+    document.getElementById('phase-description').textContent = getPhaseDescription(illumination, phaseName);
+  }
+
+  updateMoonPhase();
+  const intervalId = setInterval(updateMoonPhase, 60000);
+
+  document.addEventListener('astro:page-change', () => {
+    clearInterval(intervalId);
+  });
+</script>
