@@ -1,0 +1,89 @@
+---
+---
+<div class="year-progress" style="
+  font-family: inherit;
+  max-width: 600px;
+  margin: 0 auto;
+">
+  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+    <span style="font-size: 0.875rem; color: var(--color-text-muted);">Progreso del año</span>
+    <span id="progress-value" style="
+      font-size: 1.5rem;
+      font-weight: 600;
+      color: var(--color-primary);
+      font-variant-numeric: tabular-nums;
+      font-family: ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace;
+    ">0.000000%</span>
+  </div>
+  <progress
+    id="progress-bar"
+    value="0"
+    max="100"
+    style="
+      width: 100%;
+      height: 8px;
+      appearance: none;
+      border-radius: 4px;
+      background: var(--color-border);
+      overflow: hidden;
+    "
+  ></progress>
+</div>
+
+<script>
+  function isLeapYear(year) {
+    return (year % 4 === 0 && year % 100 !== 0) || (year % 400 === 0);
+  }
+
+  function getYearProgress() {
+    const now = new Date();
+    const year = now.getFullYear();
+    const startOfYear = new Date(year, 0, 1);
+    const endOfYear = new Date(year + 1, 0, 1);
+
+    const totalMs = endOfYear.getTime() - startOfYear.getTime();
+    const elapsedMs = now.getTime() - startOfYear.getTime();
+
+    return (elapsedMs / totalMs) * 100;
+  }
+
+  function formatProgress(percent) {
+    return percent.toFixed(6) + '%';
+  }
+
+  function updateProgress() {
+    const percent = getYearProgress();
+    const progressBar = document.getElementById('progress-bar');
+    const progressValue = document.getElementById('progress-value');
+
+    if (progressBar && progressValue) {
+      progressBar.value = percent;
+      progressValue.textContent = formatProgress(percent);
+    }
+  }
+
+  updateProgress();
+  const intervalId = setInterval(updateProgress, 1000);
+
+  document.addEventListener('astro:page-change', () => {
+    clearInterval(intervalId);
+  });
+</script>
+
+<style>
+  progress::-webkit-progress-bar {
+    background: var(--color-border);
+    border-radius: 4px;
+  }
+
+  progress::-webkit-progress-value {
+    background: linear-gradient(90deg, var(--color-primary), var(--color-primary-hover));
+    border-radius: 4px;
+    transition: width 1s linear;
+  }
+
+  progress::-moz-progress-bar {
+    background: linear-gradient(90deg, var(--color-primary), var(--color-primary-hover));
+    border-radius: 4px;
+  }
+</style>
