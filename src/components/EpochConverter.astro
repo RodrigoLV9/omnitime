@@ -1,0 +1,203 @@
+---
+---
+<div class="epoch-converter" style="
+  font-family: inherit;
+  max-width: 600px;
+  margin: 0 auto;
+">
+
+  <section class="epoch-counter" style="
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: 12px;
+    padding: 2rem;
+    text-align: center;
+    margin-bottom: 1.5rem;
+  ">
+    <div style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--color-text-muted); margin-bottom: 0.75rem;">
+      Tiempo Unix actual
+    </div>
+    <div id="epoch-counter" style="
+      font-size: 4rem;
+      font-weight: 700;
+      color: var(--color-primary);
+      font-variant-numeric: tabular-nums;
+      font-family: ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace;
+      line-height: 1;
+      word-break: break-all;
+    ">—</div>
+    <div style="font-size: 0.75rem; color: var(--color-text-muted); margin-top: 0.5rem;">
+      Se actualiza cada segundo
+    </div>
+  </section>
+
+  <section class="epoch-calculator" style="
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: 12px;
+    padding: 1.5rem;
+    display: grid;
+    gap: 1.5rem;
+  ">
+    <div class="converter-row" style="display: grid; gap: 1rem;">
+      <label style="
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: var(--color-text-muted);
+      ">
+        Timestamp → Fecha local
+      </label>
+      <div style="display: flex; gap: 0.75rem; flex-wrap: wrap; align-items: center;">
+        <input
+          type="number"
+          id="timestamp-input"
+          placeholder="Ej. 1704067200"
+          style="
+            flex: 1;
+            min-width: 200px;
+            padding: 0.75rem 1rem;
+            font-size: 1rem;
+            font-family: ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace;
+            background: var(--color-background);
+            border: 1px solid var(--color-border);
+            border-radius: 8px;
+            color: var(--color-text);
+            outline: none;
+          "
+          aria-label="Timestamp Unix"
+        />
+        <output id="timestamp-output" style="
+          min-width: 200px;
+          padding: 0.75rem 1rem;
+          font-size: 1rem;
+          font-family: ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace;
+          background: var(--color-background);
+          border: 1px solid var(--color-border);
+          border-radius: 8px;
+          color: var(--color-text);
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+        ">—</output>
+      </div>
+    </div>
+
+    <div class="converter-row" style="display: grid; gap: 1rem;">
+      <label style="
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: var(--color-text-muted);
+      ">
+        Fecha/hora → Timestamp
+      </label>
+      <div style="display: flex; gap: 0.75rem; flex-wrap: wrap; align-items: center;">
+        <input
+          type="datetime-local"
+          id="datetime-input"
+          style="
+            flex: 1;
+            min-width: 200px;
+            padding: 0.75rem 1rem;
+            font-size: 1rem;
+            font-family: ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace;
+            background: var(--color-background);
+            border: 1px solid var(--color-border);
+            border-radius: 8px;
+            color: var(--color-text);
+            outline: none;
+          "
+          aria-label="Fecha y hora local"
+        />
+        <output id="datetime-output" style="
+          min-width: 200px;
+          padding: 0.75rem 1rem;
+          font-size: 1rem;
+          font-family: ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace;
+          background: var(--color-background);
+          border: 1px solid var(--color-border);
+          border-radius: 8px;
+          color: var(--color-primary);
+          font-weight: 600;
+        ">—</output>
+      </div>
+    </div>
+  </section>
+
+</div>
+
+<script>
+  function updateEpochCounter() {
+    const now = Date.now();
+    const epochSeconds = Math.floor(now / 1000);
+    document.getElementById('epoch-counter').textContent = epochSeconds.toLocaleString();
+  }
+
+  function timestampToDate(timestamp) {
+    if (timestamp === '' || timestamp === null || isNaN(timestamp)) return '—';
+    const date = new Date(Number(timestamp) * 1000);
+    if (isNaN(date.getTime())) return 'Timestamp inválido';
+    return date.toLocaleString(undefined, {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+      hour12: false
+    });
+  }
+
+  function dateToTimestamp(dateStr) {
+    if (!dateStr) return '—';
+    const date = new Date(dateStr);
+    if (isNaN(date.getTime())) return 'Fecha inválida';
+    return Math.floor(date.getTime() / 1000).toLocaleString();
+  }
+
+  function initConverters() {
+    const timestampInput = document.getElementById('timestamp-input');
+    const timestampOutput = document.getElementById('timestamp-output');
+    const datetimeInput = document.getElementById('datetime-input');
+    const datetimeOutput = document.getElementById('datetime-output');
+
+    timestampInput?.addEventListener('input', (e) => {
+      timestampOutput.textContent = timestampToDate(e.target.value);
+    });
+
+    datetimeInput?.addEventListener('input', (e) => {
+      datetimeOutput.textContent = dateToTimestamp(e.target.value);
+    });
+
+    const now = new Date();
+    const offset = now.getTimezoneOffset() * 60000;
+    const localISO = new Date(now.getTime() - offset).toISOString().slice(0, 16);
+    datetimeInput.value = localISO;
+    datetimeOutput.textContent = dateToTimestamp(localISO);
+  }
+
+  updateEpochCounter();
+  const intervalId = setInterval(updateEpochCounter, 1000);
+
+  initConverters();
+
+  document.addEventListener('astro:page-change', () => {
+    clearInterval(intervalId);
+  });
+</script>
+
+<style>
+  input:focus, input:focus-visible {
+    border-color: var(--color-primary) !important;
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-primary) 20%, transparent);
+  }
+
+  output {
+    transition: color 0.15s ease;
+  }
+
+  #datetime-output {
+    color: var(--color-primary);
+  }
+</style>
