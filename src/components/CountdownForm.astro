@@ -1,0 +1,208 @@
+---
+---
+<div class="countdown-form" style="
+  font-family: inherit;
+  max-width: 600px;
+  margin: 0 auto;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  padding: 2rem;
+">
+  <div style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--color-text-muted); margin-bottom: 1.5rem; text-align: center;">
+    Crear cuenta regresiva personalizada
+  </div>
+
+  <form id="countdown-form" style="display: grid; gap: 1.25rem;">
+    <div>
+      <label for="event-name" style="
+        display: block;
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: var(--color-text-muted);
+        margin-bottom: 0.5rem;
+      ">Nombre del evento</label>
+      <input
+        type="text"
+        id="event-name"
+        name="event-name"
+        placeholder="Ej. Mi cumpleaños, Lanzamiento, Aniversario..."
+        required
+        maxlength="60"
+        style="
+          width: 100%;
+          padding: 0.875rem 1rem;
+          font-size: 1rem;
+          font-family: inherit;
+          background: var(--color-background);
+          border: 1px solid var(--color-border);
+          border-radius: 8px;
+          color: var(--color-text);
+          outline: none;
+          box-sizing: border-box;
+        "
+        aria-label="Nombre del evento"
+      />
+    </div>
+
+    <div>
+      <label for="event-date" style="
+        display: block;
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: var(--color-text-muted);
+        margin-bottom: 0.5rem;
+      >Fecha y hora de finalización</label>
+      <input
+        type="datetime-local"
+        id="event-date"
+        name="event-date"
+        required
+        style="
+          width: 100%;
+          padding: 0.875rem 1rem;
+          font-size: 1rem;
+          font-family: inherit;
+          background: var(--color-background);
+          border: 1px solid var(--color-border);
+          border-radius: 8px;
+          color: var(--color-text);
+          outline: none;
+          box-sizing: border-box;
+        "
+        aria-label="Fecha y hora de finalización"
+      />
+    </div>
+
+    <button
+      type="submit"
+      id="submit-btn"
+      style="
+        width: 100%;
+        padding: 1rem 1.5rem;
+        font-size: 1rem;
+        font-weight: 600;
+        font-family: inherit;
+        color: white;
+        background: var(--color-primary);
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: background-color 0.15s ease, transform 0.1s ease;
+        margin-top: 0.5rem;
+      "
+      aria-label="Crear cuenta regresiva"
+    >
+      Crear
+    </button>
+  </form>
+
+  <div id="form-message" style="
+    margin-top: 1rem;
+    padding: 1rem;
+    border-radius: 8px;
+    font-size: 0.875rem;
+    display: none;
+  "></div>
+</div>
+
+<script>
+  function showMessage(text, isError = false) {
+    const msgEl = document.getElementById('form-message');
+    msgEl.textContent = text;
+    msgEl.style.display = 'block';
+    msgEl.style.background = isError
+      ? 'color-mix(in srgb, var(--color-error) 15%, var(--color-surface))'
+      : 'color-mix(in srgb, var(--color-success) 15%, var(--color-surface))';
+    msgEl.style.color = isError ? 'var(--color-error)' : 'var(--color-success)';
+    msgEl.style.border = `1px solid ${isError ? 'var(--color-error)' : 'var(--color-success)'}`;
+  }
+
+  function hideMessage() {
+    const msgEl = document.getElementById('form-message');
+    msgEl.style.display = 'none';
+  }
+
+  function setLoading(isLoading) {
+    const btn = document.getElementById('submit-btn');
+    btn.disabled = isLoading;
+    btn.textContent = isLoading ? 'Creando...' : 'Crear';
+    btn.style.opacity = isLoading ? '0.7' : '1';
+  }
+
+  document.getElementById('countdown-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    hideMessage();
+
+    const name = document.getElementById('event-name').value.trim();
+    const dateStr = document.getElementById('event-date').value;
+
+    if (!name) {
+      showMessage('Por favor ingresa un nombre para el evento', true);
+      return;
+    }
+    if (!dateStr) {
+      showMessage('Por favor selecciona una fecha y hora', true);
+      return;
+    }
+
+    const targetDate = new Date(dateStr);
+    if (isNaN(targetDate.getTime())) {
+      showMessage('Fecha inválida', true);
+      return;
+    }
+    if (targetDate <= new Date()) {
+      showMessage('La fecha debe ser en el futuro', true);
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      const eventData = {
+        name,
+        targetDate: targetDate.toISOString(),
+        createdAt: new Date().toISOString()
+      };
+
+      const existing = JSON.parse(localStorage.getItem('customCountdowns') || '[]');
+      existing.push(eventData);
+      localStorage.setItem('customCountdowns', JSON.stringify(existing));
+
+      showMessage(`¡Cuenta regresiva "${name}" creada! Se guardará en tu navegador.`, false);
+      document.getElementById('countdown-form').reset();
+
+      setTimeout(() => hideMessage(), 5000);
+    } catch (err) {
+      showMessage('Error al guardar. Intenta de nuevo.', true);
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  });
+
+  const now = new Date();
+  now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+  document.getElementById('event-date').min = now.toISOString().slice(0, 16);
+</script>
+
+<style>
+  input:focus, input:focus-visible {
+    border-color: var(--color-primary) !important;
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-primary) 20%, transparent);
+  }
+
+  button:hover:not(:disabled) {
+    background: var(--color-primary-hover) !important;
+  }
+
+  button:active:not(:disabled) {
+    transform: scale(0.98);
+  }
+
+  button:disabled {
+    cursor: not-allowed;
+  }
+</style>
