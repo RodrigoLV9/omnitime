@@ -106,9 +106,209 @@
     font-size: 0.875rem;
     display: none;
   "></div>
+
+  <div id="saved-countdowns" style="margin-top: 2rem;"></div>
 </div>
 
 <script>
+  const STORAGE_KEY = 'custom_countdowns';
+
+  function getSavedCountdowns() {
+    try {
+      return JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+    } catch {
+      return [];
+    }
+  }
+
+  function saveCountdowns(countdowns) {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(countdowns));
+  }
+
+  function createCountdownObject(name, targetDate) {
+    return {
+      id: Date.now(),
+      name,
+      targetDate: targetDate.toISOString(),
+      createdAt: new Date().toISOString()
+    };
+  }
+
+  function formatDate(date) {
+    return date.toLocaleString(undefined, {
+      weekday: 'short',
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  }
+
+  function getTimeRemaining(targetDate) {
+    const now = new Date();
+    const diff = targetDate.getTime() - now.getTime();
+    if (diff <= 0) return { days: 0, hours: 0, minutes: 0, seconds: 0, expired: true };
+    return {
+      days: Math.floor(diff / (1000 * 60 * 60 * 24)),
+      hours: Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)),
+      minutes: Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60)),
+      seconds: Math.floor((diff % (1000 * 60)) / 1000),
+      expired: false
+    };
+  }
+
+  function renderSavedCountdowns() {
+    const container = document.getElementById('saved-countdowns');
+    const countdowns = getSavedCountdowns();
+
+    if (countdowns.length === 0) {
+      container.innerHTML = '';
+      return;
+    }
+
+    container.innerHTML = `
+      <div style="
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: var(--color-text-muted);
+        margin-bottom: 1rem;
+        padding-bottom: 0.5rem;
+        border-bottom: 1px solid var(--color-border);
+      ">
+        Cuentas regresivas guardadas (${countdowns.length})
+      </div>
+      <div id="countdowns-list" style="display: grid; gap: 0.75rem;">
+        ${countdowns.map(cd => `
+          <article class="saved-countdown" data-id="${cd.id}" style="
+            background: var(--color-background);
+            border: 1px solid var(--color-border);
+            border-radius: 8px;
+            padding: 1rem;
+            display: grid;
+            gap: 0.75rem;
+          ">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem;">
+              <div style="flex: 1; min-width: 0;">
+                <div style="font-weight: 600; color: var(--color-text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${cd.name}</div>
+                <div style="font-size: 0.875rem; color: var(--color-text-muted); margin-top: 0.25rem;">${formatDate(new Date(cd.targetDate))}</div>
+              </div>
+              <button class="delete-btn" data-id="${cd.id}" style="
+                padding: 0.375rem 0.75rem;
+                font-size: 0.75rem;
+                font-weight: 500;
+                color: var(--color-error);
+                background: color-mix(in srgb, var(--color-error) 10%, var(--color-surface));
+                border: 1px solid var(--color-error);
+                border-radius: 6px;
+                cursor: pointer;
+                transition: all 0.15s ease;
+                flex-shrink: 0;
+              " aria-label="Eliminar ${cd.name}">Eliminar</button>
+            </div>
+            <div class="countdown-display" style="
+              display: grid;
+              grid-template-columns: repeat(4, 1fr);
+              gap: 0.5rem;
+            ">
+              <div class="unit" style="text-align: center;">
+                <div class="cd-days" style="
+                  font-size: 1.5rem;
+                  font-weight: 700;
+                  color: var(--color-text);
+                  font-variant-numeric: tabular-nums;
+                  font-family: ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace;
+                ">—</div>
+                <div style="font-size: 0.6rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--color-text-muted);">Días</div>
+              </div>
+              <div class="unit" style="text-align: center;">
+                <div class="cd-hours" style="
+                  font-size: 1.5rem;
+                  font-weight: 700;
+                  color: var(--color-text);
+                  font-variant-numeric: tabular-nums;
+                  font-family: ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace;
+                ">—</div>
+                <div style="font-size: 0.6rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--color-text-muted);">Horas</div>
+              </div>
+              <div class="unit" style="text-align: center;">
+                <div class="cd-minutes" style="
+                  font-size: 1.5rem;
+                  font-weight: 700;
+                  color: var(--color-text);
+                  font-variant-numeric: tabular-nums;
+                  font-family: ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace;
+                ">—</div>
+                <div style="font-size: 0.6rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--color-text-muted);">Min</div>
+              </div>
+              <div class="unit" style="text-align: center;">
+                <div class="cd-seconds" style="
+                  font-size: 1.5rem;
+                  font-weight: 700;
+                  color: var(--color-primary);
+                  font-variant-numeric: tabular-nums;
+                  font-family: ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace;
+                ">—</div>
+                <div style="font-size: 0.6rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--color-text-muted);">Seg</div>
+              </div>
+            </div>
+          </article>
+        `).join('')}
+      </div>
+    `;
+
+    attachDeleteListeners();
+    updateAllCountdowns();
+  }
+
+  function attachDeleteListeners() {
+    document.querySelectorAll('.delete-btn').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        const id = Number(e.target.dataset.id);
+        deleteCountdown(id);
+      });
+    });
+  }
+
+  function deleteCountdown(id) {
+    const countdowns = getSavedCountdowns().filter(cd => cd.id !== id);
+    saveCountdowns(countdowns);
+    renderSavedCountdowns();
+  }
+
+  function updateAllCountdowns() {
+    const countdowns = getSavedCountdowns();
+    countdowns.forEach(cd => {
+      const targetDate = new Date(cd.targetDate);
+      const { days, hours, minutes, seconds, expired } = getTimeRemaining(targetDate);
+      const card = document.querySelector(`.saved-countdown[data-id="${cd.id}"]`);
+      if (!card) return;
+
+      const daysEl = card.querySelector('.cd-days');
+      const hoursEl = card.querySelector('.cd-hours');
+      const minutesEl = card.querySelector('.cd-minutes');
+      const secondsEl = card.querySelector('.cd-seconds');
+
+      if (daysEl) {
+        daysEl.textContent = days.toString().padStart(2, '0');
+        hoursEl.textContent = hours.toString().padStart(2, '0');
+        minutesEl.textContent = minutes.toString().padStart(2, '0');
+        secondsEl.textContent = seconds.toString().padStart(2, '0');
+
+        const color = expired ? 'var(--color-text-muted)' : 'var(--color-text)';
+        const secColor = expired ? 'var(--color-text-muted)' : 'var(--color-primary)';
+        [daysEl, hoursEl, minutesEl].forEach(el => el.style.color = color);
+        secondsEl.style.color = secColor;
+
+        if (expired) {
+          card.style.opacity = '0.6';
+          card.style.borderColor = 'var(--color-border)';
+        }
+      }
+    });
+  }
+
   function showMessage(text, isError = false) {
     const msgEl = document.getElementById('form-message');
     msgEl.textContent = text;
@@ -161,18 +361,16 @@
     setLoading(true);
 
     try {
-      const eventData = {
-        name,
-        targetDate: targetDate.toISOString(),
-        createdAt: new Date().toISOString()
-      };
+      const eventData = createCountdownObject(name, targetDate);
 
-      const existing = JSON.parse(localStorage.getItem('customCountdowns') || '[]');
+      const existing = getSavedCountdowns();
       existing.push(eventData);
-      localStorage.setItem('customCountdowns', JSON.stringify(existing));
+      saveCountdowns(existing);
 
-      showMessage(`¡Cuenta regresiva "${name}" creada! Se guardará en tu navegador.`, false);
+      showMessage(`¡Cuenta regresiva "${name}" creada!`, false);
       document.getElementById('countdown-form').reset();
+
+      renderSavedCountdowns();
 
       setTimeout(() => hideMessage(), 5000);
     } catch (err) {
@@ -186,6 +384,14 @@
   const now = new Date();
   now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
   document.getElementById('event-date').min = now.toISOString().slice(0, 16);
+
+  renderSavedCountdowns();
+
+  const intervalId = setInterval(updateAllCountdowns, 1000);
+
+  document.addEventListener('astro:page-change', () => {
+    clearInterval(intervalId);
+  });
 </script>
 
 <style>
@@ -204,5 +410,19 @@
 
   button:disabled {
     cursor: not-allowed;
+  }
+
+  .delete-btn:hover {
+    background: var(--color-error) !important;
+    color: white !important;
+  }
+
+  @media (max-width: 480px) {
+    .countdown-display {
+      grid-template-columns: repeat(2, 1fr) !important;
+    }
+    .countdown-display .unit div:first-child {
+      font-size: 1.25rem !important;
+    }
   }
 </style>
