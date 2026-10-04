@@ -1,0 +1,99 @@
+---
+---
+<div class="time-stats" style="
+  font-family: inherit;
+  max-width: 600px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1.5rem;
+">
+  <article class="stat-card" style="
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: 12px;
+    padding: 1.5rem;
+    text-align: center;
+  ">
+    <div style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--color-text-muted); margin-bottom: 0.5rem;">
+      Día del año
+    </div>
+    <div id="day-of-year" style="
+      font-size: 3rem;
+      font-weight: 700;
+      color: var(--color-primary);
+      font-variant-numeric: tabular-nums;
+      font-family: ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace;
+      line-height: 1;
+    ">—</div>
+    <div id="day-of-year-total" style="font-size: 0.875rem; color: var(--color-text-muted); margin-top: 0.25rem;">de —</div>
+  </article>
+
+  <article class="stat-card" style="
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: 12px;
+    padding: 1.5rem;
+    text-align: center;
+  ">
+    <div style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--color-text-muted); margin-bottom: 0.5rem;">
+      Semana del año
+    </div>
+    <div id="week-of-year" style="
+      font-size: 3rem;
+      font-weight: 700;
+      color: var(--color-primary);
+      font-variant-numeric: tabular-nums;
+      font-family: ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace;
+      line-height: 1;
+    ">—</div>
+    <div id="week-of-year-total" style="font-size: 0.875rem; color: var(--color-text-muted); margin-top: 0.25rem;">de —</div>
+  </article>
+</div>
+
+<script>
+  function isLeapYear(year) {
+    return (year % 4 === 0 && year % 100 !== 0) || (year % 400 === 0);
+  }
+
+  function getDayOfYear() {
+    const now = new Date();
+    const year = now.getFullYear();
+    const startOfYear = new Date(year, 0, 1);
+    const diffMs = now.getTime() - startOfYear.getTime();
+    const dayOfYear = Math.floor(diffMs / (1000 * 60 * 60 * 24)) + 1;
+    const totalDays = isLeapYear(year) ? 366 : 365;
+    return { dayOfYear, totalDays };
+  }
+
+  function getWeekOfYear() {
+    const now = new Date();
+    const year = now.getFullYear();
+    const startOfYear = new Date(year, 0, 1);
+    const dayOfYear = Math.floor((now.getTime() - startOfYear.getTime()) / (1000 * 60 * 60 * 24)) + 1;
+    const startDayOfWeek = startOfYear.getDay();
+    const weekOfYear = Math.ceil((dayOfYear + startDayOfWeek) / 7);
+    const totalWeeks = isLeapYear(year) ? 53 : 52;
+    return { weekOfYear, totalWeeks };
+  }
+
+  function renderStats() {
+    const { dayOfYear, totalDays } = getDayOfYear();
+    const { weekOfYear, totalWeeks } = getWeekOfYear();
+
+    document.getElementById('day-of-year').textContent = dayOfYear;
+    document.getElementById('day-of-year-total').textContent = `de ${totalDays}`;
+    document.getElementById('week-of-year').textContent = weekOfYear;
+    document.getElementById('week-of-year-total').textContent = `de ${totalWeeks}`;
+  }
+
+  renderStats();
+</script>
+
+<style>
+  .stat-card:hover {
+    border-color: var(--color-primary);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  }
+</style>
