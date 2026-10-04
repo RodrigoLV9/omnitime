@@ -1,0 +1,199 @@
+---
+---
+<div class="cultural-calendars" style="
+  font-family: inherit;
+  max-width: 600px;
+  margin: 0 auto;
+  display: grid;
+  gap: 1.5rem;
+">
+  <div style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--color-text-muted); text-align: center;">
+    Calendarios culturales - Próximas celebraciones
+  </div>
+
+  <div id="calendars-container" style="display: grid; gap: 1rem;"></div>
+</div>
+
+<script>
+  const CULTURAL_EVENTS = {
+    'Año Nuevo Lunar Chino': [
+      { year: 2025, date: '2025-01-29', emoji: '🐍' },
+      { year: 2026, date: '2026-02-17', emoji: '🐎' },
+      { year: 2027, date: '2027-02-06', emoji: '🐐' },
+      { year: 2028, date: '2028-01-26', emoji: '🐒' },
+      { year: 2029, date: '2029-02-13', emoji: '🐔' },
+      { year: 2030, date: '2030-02-03', emoji: '🐕' }
+    ],
+    'Inicio del Ramadán': [
+      { year: 2025, date: '2025-03-01', emoji: '☪️' },
+      { year: 2026, date: '2026-02-18', emoji: '☪️' },
+      { year: 2027, date: '2027-02-08', emoji: '☪️' },
+      { year: 2028, date: '2028-01-28', emoji: '☪️' },
+      { year: 2029, date: '2029-01-16', emoji: '☪️' },
+      { year: 2030, date: '2030-01-06', emoji: '☪️' }
+    ],
+    Diwali: [
+      { year: 2025, date: '2025-10-21', emoji: '🪔' },
+      { year: 2026, date: '2026-11-08', emoji: '🪔' },
+      { year: 2027, date: '2027-10-29', emoji: '🪔' },
+      { year: 2028, date: '2028-10-17', emoji: '🪔' },
+      { year: 2029, date: '2029-11-05', emoji: '🪔' },
+      { year: 2030, date: '2030-10-26', emoji: '🪔' }
+    ]
+  };
+
+  function getNextEvent(events) {
+    const now = new Date();
+    now.setHours(0, 0, 0, 0);
+    for (const event of events) {
+      const eventDate = new Date(event.date + 'T00:00:00');
+      if (eventDate >= now) {
+        return { ...event, dateObj: eventDate };
+      }
+    }
+    return null;
+  }
+
+  function getTimeRemaining(targetDate) {
+    const now = new Date();
+    const diff = targetDate.getTime() - now.getTime();
+    if (diff <= 0) return { days: 0, hours: 0, minutes: 0, seconds: 0, expired: true };
+    return {
+      days: Math.floor(diff / (1000 * 60 * 60 * 24)),
+      hours: Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)),
+      minutes: Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60)),
+      seconds: Math.floor((diff % (1000 * 60)) / 1000),
+      expired: false
+    };
+  }
+
+  function formatDate(date) {
+    return date.toLocaleDateString(undefined, {
+      weekday: 'long',
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    });
+  }
+
+  function createCountdownCard(name, event) {
+    const { days, hours, minutes, seconds, expired } = getTimeRemaining(event.dateObj);
+    const isSoon = days <= 7 && !expired;
+
+    return `
+      <article class="cultural-card" data-name="${name}" style="
+        background: var(--color-surface);
+        border: 1px solid ${isSoon ? 'var(--color-primary)' : 'var(--color-border)'};
+        border-radius: 12px;
+        padding: 1.5rem;
+        position: relative;
+        overflow: hidden;
+        transition: border-color 0.3s ease, box-shadow 0.3s ease;
+      ">
+        ${isSoon ? '<div style="position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--color-primary),var(--color-primary-hover));"></div>' : ''}
+        <div style="display:flex;align-items:center;gap:0.75rem;margin-bottom:1rem;">
+          <span style="font-size:2rem;">${event.emoji}</span>
+          <div>
+            <div style="font-weight:600;color:var(--color-text);font-size:1.1rem;">${name}</div>
+            <div style="font-size:0.875rem;color:var(--color-text-muted);">${formatDate(event.dateObj)}</div>
+          </div>
+        </div>
+        <div class="countdown-grid" style="
+          display:grid;
+          grid-template-columns:repeat(4,1fr);
+          gap:0.5rem;
+        ">
+          <div class="unit" style="text-align:center;">
+            <div id="${name}-days" style="
+              font-size:2rem;font-weight:700;color:${expired ? 'var(--color-text-muted)' : 'var(--color-text)'};
+              font-variant-numeric:tabular-nums;font-family:ui-monospace,SFMono-Regular,'SF Mono',Menlo,Consolas,monospace;
+            ">${days.toString().padStart(2,'0')}</div>
+            <div style="font-size:0.65rem;text-transform:uppercase;letter-spacing:0.05em;color:var(--color-text-muted);">Días</div>
+          </div>
+          <div class="unit" style="text-align:center;">
+            <div id="${name}-hours" style="
+              font-size:2rem;font-weight:700;color:${expired ? 'var(--color-text-muted)' : 'var(--color-text)'};
+              font-variant-numeric:tabular-nums;font-family:ui-monospace,SFMono-Regular,'SF Mono',Menlo,Consolas,monospace;
+            ">${hours.toString().padStart(2,'0')}</div>
+            <div style="font-size:0.65rem;text-transform:uppercase;letter-spacing:0.05em;color:var(--color-text-muted);">Horas</div>
+          </div>
+          <div class="unit" style="text-align:center;">
+            <div id="${name}-minutes" style="
+              font-size:2rem;font-weight:700;color:${expired ? 'var(--color-text-muted)' : 'var(--color-text)'};
+              font-variant-numeric:tabular-nums;font-family:ui-monospace,SFMono-Regular,'SF Mono',Menlo,Consolas,monospace;
+            ">${minutes.toString().padStart(2,'0')}</div>
+            <div style="font-size:0.65rem;text-transform:uppercase;letter-spacing:0.05em;color:var(--color-text-muted);">Min</div>
+          </div>
+          <div class="unit" style="text-align:center;">
+            <div id="${name}-seconds" style="
+              font-size:2rem;font-weight:700;color:${expired ? 'var(--color-text-muted)' : 'var(--color-primary)'};
+              font-variant-numeric:tabular-nums;font-family:ui-monospace,SFMono-Regular,'SF Mono',Menlo,Consolas,monospace;
+            ">${seconds.toString().padStart(2,'0')}</div>
+            <div style="font-size:0.65rem;text-transform:uppercase;letter-spacing:0.05em;color:var(--color-text-muted);">Seg</div>
+          </div>
+        </div>
+        ${expired ? '<div style="margin-top:1rem;text-align:center;color:var(--color-text-muted);font-size:0.875rem;">¡Ya pasó! Mostrando siguiente...</div>' : ''}
+      </article>
+    `;
+  }
+
+  function renderAll() {
+    const container = document.getElementById('calendars-container');
+    let html = '';
+    for (const [name, events] of Object.entries(CULTURAL_EVENTS)) {
+      const next = getNextEvent(events);
+      if (next) {
+        html += createCountdownCard(name, next);
+      }
+    }
+    container.innerHTML = html;
+  }
+
+  function updateAll() {
+    for (const [name, events] of Object.entries(CULTURAL_EVENTS)) {
+      const next = getNextEvent(events);
+      if (!next) continue;
+      const { days, hours, minutes, seconds, expired } = getTimeRemaining(next.dateObj);
+      const daysEl = document.getElementById(`${name}-days`);
+      const hoursEl = document.getElementById(`${name}-hours`);
+      const minutesEl = document.getElementById(`${name}-minutes`);
+      const secondsEl = document.getElementById(`${name}-seconds`);
+      if (daysEl) {
+        daysEl.textContent = days.toString().padStart(2, '0');
+        hoursEl.textContent = hours.toString().padStart(2, '0');
+        minutesEl.textContent = minutes.toString().padStart(2, '0');
+        secondsEl.textContent = seconds.toString().padStart(2, '0');
+        const color = expired ? 'var(--color-text-muted)' : 'var(--color-text)';
+        const secColor = expired ? 'var(--color-text-muted)' : 'var(--color-primary)';
+        [daysEl, hoursEl, minutesEl].forEach(el => el.style.color = color);
+        secondsEl.style.color = secColor;
+      }
+    }
+  }
+
+  renderAll();
+  updateAll();
+
+  const intervalId = setInterval(updateAll, 1000);
+
+  document.addEventListener('astro:page-change', () => {
+    clearInterval(intervalId);
+  });
+</script>
+
+<style>
+  @media (max-width: 480px) {
+    .countdown-grid {
+      grid-template-columns: repeat(2, 1fr) !important;
+    }
+    .unit div:first-child {
+      font-size: 1.5rem !important;
+    }
+  }
+
+  .cultural-card:hover {
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+    transform: translateY(-2px);
+    transition: box-shadow 0.2s ease, transform 0.2s ease;
+  }
+</style>

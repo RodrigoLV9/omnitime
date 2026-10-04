@@ -1,6 +1,7 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
 import MoonPhase from '../components/MoonPhase.astro';
+import CulturalCalendars from '../components/CulturalCalendars.astro';
 ---
 <BaseLayout title="Calendario Cultural - Omnitime">
   <h1 style="font-size: 2.5rem; font-weight: 700; color: var(--color-text); margin-bottom: 1rem;">
@@ -12,4 +13,5 @@ import MoonPhase from '../components/MoonPhase.astro';
   </p>
 
   <MoonPhase client:load />
+  <CulturalCalendars client:load />
 </BaseLayout>
