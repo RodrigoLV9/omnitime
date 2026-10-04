@@ -1,0 +1,242 @@
+---
+---
+<div class="seasons-countdown" style="
+  font-family: inherit;
+  max-width: 600px;
+  margin: 0 auto;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  padding: 2rem;
+">
+  <div style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--color-text-muted); margin-bottom: 1rem; text-align: center;">
+    Próximo evento astronómico
+  </div>
+
+  <div id="event-info" style="
+    text-align: center;
+    margin-bottom: 1.5rem;
+  ">
+    <div id="event-name" style="
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--color-primary);
+      margin-bottom: 0.5rem;
+    ">—</div>
+    <div id="event-date" style="
+      font-size: 1rem;
+      color: var(--color-text-muted);
+    ">—</div>
+  </div>
+
+  <div class="countdown" style="
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1rem;
+  ">
+    <div class="countdown-unit" style="text-align: center;">
+      <div id="days" style="
+        font-size: 3rem;
+        font-weight: 700;
+        color: var(--color-text);
+        font-variant-numeric: tabular-nums;
+        font-family: ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace;
+        line-height: 1;
+      ">—</div>
+      <div style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--color-text-muted); margin-top: 0.25rem;">Días</div>
+    </div>
+    <div class="countdown-unit" style="text-align: center;">
+      <div id="hours" style="
+        font-size: 3rem;
+        font-weight: 700;
+        color: var(--color-text);
+        font-variant-numeric: tabular-nums;
+        font-family: ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace;
+        line-height: 1;
+      ">—</div>
+      <div style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--color-text-muted); margin-top: 0.25rem;">Horas</div>
+    </div>
+    <div class="countdown-unit" style="text-align: center;">
+      <div id="minutes" style="
+        font-size: 3rem;
+        font-weight: 700;
+        color: var(--color-text);
+        font-variant-numeric: tabular-nums;
+        font-family: ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace;
+        line-height: 1;
+      ">—</div>
+      <div style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--color-text-muted); margin-top: 0.25rem;">Minutos</div>
+    </div>
+    <div class="countdown-unit" style="text-align: center;">
+      <div id="seconds" style="
+        font-size: 3rem;
+        font-weight: 700;
+        color: var(--color-primary);
+        font-variant-numeric: tabular-nums;
+        font-family: ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace;
+        line-height: 1;
+      ">—</div>
+      <div style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--color-text-muted); margin-top: 0.25rem;">Segundos</div>
+    </div>
+  </div>
+
+  <div id="all-events" style="
+    margin-top: 2rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--color-border);
+  ">
+    <div style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--color-text-muted); margin-bottom: 1rem; text-align: center;">
+      Eventos del año
+    </div>
+    <div id="events-list" style="display: grid; gap: 0.5rem;"></div>
+  </div>
+</div>
+
+<script>
+  function getEquinoxSolsticeDates(year) {
+    const Y = year - 2000;
+
+    const marchEquinox = new Date(Date.UTC(year, 2,
+      20 + Math.floor(2.34 * Y - 0.34 * Math.floor(Y / 4) + 0.1 * Math.sin(2 * Math.PI * Y / 100)) - Math.floor(Y / 4),
+      Math.floor(12 + 0.5 * Math.sin(2 * Math.PI * Y / 100)),
+      0, 0, 0));
+
+    const juneSolstice = new Date(Date.UTC(year, 5,
+      21 + Math.floor(0.34 * Y + 0.1 * Math.sin(2 * Math.PI * Y / 100)) - Math.floor(Y / 4),
+      Math.floor(10 + 0.5 * Math.sin(2 * Math.PI * Y / 100)),
+      0, 0, 0));
+
+    const septemberEquinox = new Date(Date.UTC(year, 8,
+      23 + Math.floor(2.34 * Y - 0.34 * Math.floor(Y / 4) + 0.1 * Math.sin(2 * Math.PI * Y / 100)) - Math.floor(Y / 4),
+      Math.floor(8 + 0.5 * Math.sin(2 * Math.PI * Y / 100)),
+      0, 0, 0));
+
+    const decemberSolstice = new Date(Date.UTC(year, 11,
+      22 + Math.floor(0.34 * Y + 0.1 * Math.sin(2 * Math.PI * Y / 100)) - Math.floor(Y / 4),
+      Math.floor(6 + 0.5 * Math.sin(2 * Math.PI * Y / 100)),
+      0, 0, 0));
+
+    return [
+      { name: 'Equinoccio de marzo', date: marchEquinox, type: 'equinox' },
+      { name: 'Solsticio de junio', date: juneSolstice, type: 'solstice' },
+      { name: 'Equinoccio de septiembre', date: septemberEquinox, type: 'equinox' },
+      { name: 'Solsticio de diciembre', date: decemberSolstice, type: 'solstice' }
+    ];
+  }
+
+  function getNextEvent() {
+    const now = new Date();
+    const year = now.getFullYear();
+    const events = getEquinoxSolsticeDates(year);
+
+    const futureEvents = events.filter(e => e.date > now);
+
+    if (futureEvents.length > 0) {
+      return futureEvents[0];
+    }
+
+    const nextYearEvents = getEquinoxSolsticeDates(year + 1);
+    return nextYearEvents[0];
+  }
+
+  function formatTimeRemaining(ms) {
+    if (ms <= 0) return { days: 0, hours: 0, minutes: 0, seconds: 0 };
+    const days = Math.floor(ms / (1000 * 60 * 60 * 24));
+    const hours = Math.floor((ms % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+    const minutes = Math.floor((ms % (1000 * 60 * 60)) / (1000 * 60));
+    const seconds = Math.floor((ms % (1000 * 60)) / 1000);
+    return { days, hours, minutes, seconds };
+  }
+
+  function formatDateLocal(date) {
+    return date.toLocaleString(undefined, {
+      weekday: 'long',
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      timeZoneName: 'short'
+    });
+  }
+
+  function formatDateShort(date) {
+    return date.toLocaleDateString(undefined, {
+      weekday: 'short',
+      month: 'short',
+      day: 'numeric'
+    });
+  }
+
+  function updateCountdown() {
+    const now = new Date();
+    const nextEvent = getNextEvent();
+    const diff = nextEvent.date.getTime() - now.getTime();
+
+    const { days, hours, minutes, seconds } = formatTimeRemaining(diff);
+
+    document.getElementById('event-name').textContent = nextEvent.name;
+    document.getElementById('event-date').textContent = formatDateLocal(nextEvent.date);
+    document.getElementById('days').textContent = days.toString().padStart(2, '0');
+    document.getElementById('hours').textContent = hours.toString().padStart(2, '0');
+    document.getElementById('minutes').textContent = minutes.toString().padStart(2, '0');
+    document.getElementById('seconds').textContent = seconds.toString().padStart(2, '0');
+  }
+
+  function renderAllEvents() {
+    const now = new Date();
+    const year = now.getFullYear();
+    const events = getEquinoxSolsticeDates(year);
+
+    const container = document.getElementById('events-list');
+    container.innerHTML = events.map(event => {
+      const isPast = event.date < now;
+      const isNext = !isPast && events.indexOf(event) === events.findIndex(e => e.date > now);
+      return `
+        <div style="
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          padding: 0.75rem 1rem;
+          background: ${isNext ? 'color-mix(in srgb, var(--color-primary) 10%, var(--color-surface))' : 'var(--color-background)'};
+          border: 1px solid ${isNext ? 'var(--color-primary)' : 'var(--color-border)'};
+          border-radius: 8px;
+          transition: all 0.2s ease;
+        ">
+          <div style="display: flex; flex-direction: column; gap: 0.25rem;">
+            <span style="
+              font-weight: ${isNext ? '700' : '500'};
+              color: ${isNext ? 'var(--color-primary)' : 'var(--color-text)'};
+              ${isPast ? 'text-decoration: line-through; color: var(--color-text-muted);' : ''}
+            ">${event.name}</span>
+            <span style="font-size: 0.875rem; color: var(--color-text-muted);">
+              ${formatDateLocal(event.date)}
+            </span>
+          </div>
+          ${isNext ? '<span style="font-size: 0.75rem; background: var(--color-primary); color: white; padding: 0.25rem 0.5rem; border-radius: 4px; font-weight: 600;">PRÓXIMO</span>' : ''}
+        </div>
+      `;
+    }).join('');
+  }
+
+  updateCountdown();
+  renderAllEvents();
+
+  const intervalId = setInterval(updateCountdown, 1000);
+
+  document.addEventListener('astro:page-change', () => {
+    clearInterval(intervalId);
+  });
+</script>
+
+<style>
+  @media (max-width: 480px) {
+    .countdown {
+      grid-template-columns: repeat(2, 1fr) !important;
+      gap: 0.75rem !important;
+    }
+    .countdown-unit div:first-child {
+      font-size: 2rem !important;
+    }
+  }
+</style>
